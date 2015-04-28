@@ -14,7 +14,7 @@
         <provides>video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Watch Wrestling (http://watchwrestling.tv/)</summary>
+    <summary lang="en">Watch Wrestling (http://watchwrestling.ch/)</summary>
     <description lang="en">Free WWE, TNA, ROH, UFC Online...[CR][CR][COLOR orange]Support[/COLOR] @ [COLOR blue]www.[B]XUNITYTALK[/B].com[/COLOR]</description>	
     <platform>all</platform>
   </extension>

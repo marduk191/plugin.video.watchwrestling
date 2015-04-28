@@ -45,7 +45,7 @@ from universal import watchhistory, playbackengine
 
 mode = addon.queries['mode']
 url = addon.queries.get('url', '')
-title = addon.queries.get('title', 'Watch Wrestling ( watchwrestling.net )')
+title = addon.queries.get('title', 'Watch Wrestling ( watchwrestling.ch )')
 img = addon.queries.get('img', os.path.join(IconPath, 'icon.jpg'))
 section = addon.queries.get('section', '')
 page = addon.queries.get('page', '')
