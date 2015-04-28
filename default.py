@@ -386,7 +386,7 @@ def GetMedia(url):
         url_content = net.http_GET(url, headers=headers).content        
         url_content = re.sub("<!--.+?-->", " ", url_content)
         
-        check_for_hosted_media = re.search(r"(?s)<iframe.+?src=\"(.+?)\"", url_content)
+        check_for_hosted_media = re.search(r"(?s)<iframe.+?src=\"(.+?)\"", url_content, re.IGNORECASE)
         if check_for_hosted_media:        
             hosted_media_url = check_for_hosted_media.group(1)
             hosted_media = urlresolver.HostedMediaFile(url=hosted_media_url)
