@@ -382,13 +382,20 @@ def GetMedia(url):
     
         wh = watchhistory.WatchHistory(addon_id)    
         
-        headers['Referer'] = BASEURL
-        url_content = net.http_GET(url, headers=headers).content        
-        url_content = re.sub("<!--.+?-->", " ", url_content)
+        hosted_media_url = None
+        if url.startswith("http://pwtalk.net"):
+            # Try to scrape page for media url
+            headers['Referer'] = BASEURL
+            url_content = net.http_GET(url, headers=headers).content        
+            url_content = re.sub("<!--.+?-->", " ", url_content)
+            
+            check_for_hosted_media = re.search(r"(?s)<iframe.+?src=\"(.+?)\"", url_content, re.IGNORECASE)
+            if check_for_hosted_media:
+                hosted_media_url = check_for_hosted_media.group(1)
+        else:
+            hosted_media_url = url
         
-        check_for_hosted_media = re.search(r"(?s)<iframe.+?src=\"(.+?)\"", url_content, re.IGNORECASE)
-        if check_for_hosted_media:        
-            hosted_media_url = check_for_hosted_media.group(1)
+        if hosted_media_url:        
             hosted_media = urlresolver.HostedMediaFile(url=hosted_media_url)
             if hosted_media:
                 resolved_media_url = urlresolver.resolve(hosted_media_url)
