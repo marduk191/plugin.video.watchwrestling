@@ -149,7 +149,7 @@ def Browse(section):
     cats = re.search("(?s)<div id=\"" + section + "\-2\".+?<ul>(.+?)</ul>", url_content)
     if cats:
         cats = cats.group(1)
-        for cat in re.finditer("<li.*><a href=[\"'](.+?)[\"'].+?>(.+?)</a>", cats):
+        for cat in re.finditer("<li.*?><a href=[\"'](.+?)[\"'].*?>(.+?)</a>", cats):
             cat_url = cat.group(1)
             
             cat_title = cat.group(2)
