@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.watchwrestling"
        name="Watch Wrestling"
-       version="0.1.4"
+       version="0.1.6"
        provider-name="[COLOR blue]X[/COLOR]unity[COLOR blue]T[/COLOR]alk">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
 	<import addon="script.module.t0mm0.common" version="0.0.1"/>
 	<import addon="script.module.urlresolver" version="0.0.1"/>
 	<import addon="script.module.universal" version="0.0.1" />
+	<import addon="script.module.beautifulsoup4" version="0.0.1" />
+	<import addon="script.module.html5lib" version="0.0.1" />
   </requires>
   <extension point="xbmc.python.pluginsource"
             library="default.py">
         <provides>video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Watch Wrestling (http://watchwrestling.ch/)</summary>
+    <summary lang="en">Watch Wrestling (http://watchwrestling.to/)</summary>
     <description lang="en">Free WWE, TNA, ROH, UFC Online...[CR][CR][COLOR orange]Support[/COLOR] @ [COLOR blue]www.[B]XUNITYTALK[/B].com[/COLOR]</description>	
     <platform>all</platform>
   </extension>

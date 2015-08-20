@@ -21,10 +21,12 @@ import string
 import sys
 import re
 import urlresolver
+import urllib2
 import xbmc, xbmcaddon, xbmcplugin, xbmcgui
 
 from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
+from bs4 import BeautifulSoup
 
 addon_id = 'plugin.video.watchwrestling'
 
@@ -109,11 +111,13 @@ def GetLatest():
         url_content = net.http_GET(BASEURL, headers=headers).content
         url_content = univ_common.str_conv(url_content)        
     url_content = re.sub("<!--.+?-->", " ", url_content)
+
+    soup = BeautifulSoup(url_content, "html5lib")
     
-    for latest_headers in re.finditer(r"(?s)<span class=\"name\">(.+?)</span>.*?<a class=\"more-link\" href=\"(.+?)\">(.+?)</div> </div></div> </div>", url_content):
-        latest_title = latest_headers.group(1)        
-        more_url = latest_headers.group(2)
-        latest_items = latest_headers.group(3)
+    for section in soup.find_all("div", class_="section-box"):
+        latest_title = section.find("span", class_="name").string
+        more_url = section.find("a", class_="more-link")["href"]
+        latest_items = section.find_all("a", class_="clip-link")
         
         more_title = latest_title
         more_title = more_title.replace('Latest', '')
@@ -123,10 +127,10 @@ def GetLatest():
         more_image =  os.path.join(IconPath, more_title.lower().replace(' ','-') + '.jpg')
         
         addon.add_directory({'mode' : 'DUMMY-DIR'}, {'title':  '[COLOR blue]' + latest_title + '[/COLOR]'}, img=more_image)
-        for item in re.finditer(r"(?s)<a class=\"clip-link\".+?title=\"(.+?)\".+?href=\"(.+?)\".+?<img src=\"(.+?)\"", latest_items):
-            item_title = univ_common.str_conv(addon.decode(item.group(1)))
-            item_url = item.group(2)
-            item_image = item.group(3)
+        for item in latest_items:
+            item_title = univ_common.str_conv(addon.decode(item["title"]))
+            item_url = item["href"]
+            item_image = item.img["src"]
             
             addon.add_directory({'mode' : 'GetLinks', 'url' : item_url, 'title' : item_title, 'img':item_image}, {'title':  '.....' + item_title}, img=item_image)
         
@@ -145,14 +149,15 @@ def Browse(section):
         url_content = net.http_GET(BASEURL, headers=headers).content
         url_content = univ_common.str_conv(url_content)        
     url_content = re.sub("<!--.+?-->", " ", url_content)
+
+    soup = BeautifulSoup(url_content, "html5lib")
     
-    cats = re.search("(?s)<div id=\"" + section + "\-2\".+?<ul>(.+?)</ul>", url_content)
+    cats = soup.find("div", id="categories-2")
     if cats:
-        cats = cats.group(1)
-        for cat in re.finditer("<li.*?><a href=[\"'](.+?)[\"'].*?>(.+?)</a>", cats):
-            cat_url = cat.group(1)
+        for cat in cats.find_all("li", class_="cat-item"):
+            cat_url = cat.a["href"]
             
-            cat_title = cat.group(2)
+            cat_title = cat.a.string
             
             if 'tna/ppv-tna' in cat_url:
                 cat_title = cat_title + ' ( TNA )'
@@ -210,11 +215,13 @@ def GetPage(url, page, sort, sortorder, options):
     except:
         url_content = net.http_GET(page_url, headers=headers).content
         url_content = univ_common.str_conv(url_content)        
-    
+
+    soup = BeautifulSoup(url_content, "html5lib")
+
     ''' Page, Goto Page, Sort options '''
     totl_page = '1'
     page_of = re.search("<span class='pages'>Page ([0-9]+?) of ([0-9]+?)</span>", url_content)
-        
+
     if page_of:
         totl_page = page_of.group(2)
     addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : page, 'sort': sort, 'sortorder' : sortorder, 'options' : 'gotopage', 'tp' : totl_page}, {'title':  '[COLOR red]Page ' + page + ' of ' + totl_page + '[/COLOR]'})
@@ -226,23 +233,25 @@ def GetPage(url, page, sort, sortorder, options):
         sort_order = 'Ascending'
     addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : page, 'sort': sort, 'sortorder' : sortorder, 'options' : 'sortorder'}, {'title':  '[COLOR blue]Sort Order: [/COLOR][COLOR white]' + sort_order.title() + '[/COLOR]'})
     
-    url_content = re.search("(?s)>(?:Category|Monthly Archives)(.+?)<div id=\"sidebar\" role=\"complementary\">", url_content).group(1)    
-    
-    first_page = re.search("class=('first'|\"prev\")", url_content)
+    first_page = soup.find("a", class_="first")
     if first_page:
         addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : '1', 'sort': sort, 'sortorder' : sortorder, 'tp' : totl_page, 'type':'notsubfolder'}, {'title':  '[COLOR yellow]<< First Page[/COLOR]'})
+    prev_page = soup.find("a", class_="previouspostslink")
+    if prev_page:
         addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : int(page) - 1, 'sort': sort, 'sortorder' : sortorder, 'tp' : totl_page, 'type':'notsubfolder'}, {'title':  '[COLOR yellow]< Previous Page[/COLOR]'})
         
-    for item in re.finditer(r"(?s)<a class=\"clip-link\".+?title=\"(.+?)\".+?href=\"(.+?)\".+?img src=\"(.+?)\"", url_content):        
-        item_title = univ_common.str_conv(addon.decode(item.group(1)))
-        item_url = item.group(2)
-        item_image = item.group(3)
+    for item in soup.find("div", id="content").find_all("a", class_="clip-link"):
+        item_title = univ_common.str_conv(addon.decode(item["title"]))
+        item_url = item["href"]
+        item_image = item.img["src"]
         
         addon.add_directory({'mode' : 'GetLinks', 'url' : item_url, 'title' : item_title, 'img':item_image}, {'title': item_title}, img=item_image)
     
-    last_page = re.search("class=('last'|\"next\")", url_content)
+    last_page = soup.find("a", class_="last")
     if last_page:
         addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : int(page) + 1, 'sort': sort, 'sortorder' : sortorder, 'tp' : totl_page, 'type':'notsubfolder'}, {'title':  '[COLOR yellow]Next Page > [/COLOR]'})
+    next_page = soup.find("a", class_="nextpostslink")
+    if next_page:
         addon.add_directory({'mode' : 'Page', 'title':  title, 'img' : img, 'url' : url, 'page' : totl_page, 'sort': sort, 'sortorder' : sortorder, 'tp' : totl_page, 'type':'notsubfolder'}, {'title':  '[COLOR yellow]Last Page >> [/COLOR]'})
     
     upd_list = False
@@ -287,23 +296,25 @@ def GetLinks(url):
             # page has hidden links
             ajax_url = BASEURL + 'wp-admin/admin-ajax.php'
             locker_id = re.compile("\"lockerId\":\"(.+?)\"").findall(url_content)[0]
-            action = 'sociallocker_loader'
+            action = 'opanda_loader'
             hash = re.compile("\"contentHash\":\"(.+?)\"").findall(url_content)[0]
             
             hidden_items =  net.http_POST(ajax_url, {'lockerId': locker_id, 'action': action, 'hash': hash}, headers=headers).content
+
+            soup = BeautifulSoup(hidden_items, "html5lib")
             
-            for hidden_item in re.finditer("(?s)<p>.+?<div.+?><span.+?>(.+?)</.+?<p>(.+?)</p>",hidden_items):
-                hi_title = hidden_item.group(1)
-                hi_links = hidden_item.group(2)
-                
-                hi_title_super = hi_title
-                if super_headers:
-                    hi_title_super = '.....' + hi_title
+            for hidden_item in soup.find_all(True):
+                if hidden_item.name == "span":
+                    hi_title = hidden_item.string
                     
-                addon.add_directory({'mode' : 'DUMMY-DIR'}, {'title':  '[COLOR blue]' + hi_title_super + '[/COLOR]'})
-                for hi_link in re.finditer("(?s)<a.+?href=\"(.+?)\".+?>(.+?)</", hi_links):
-                    hi_link_title = hi_link.group(2)
-                    hi_link_url = hi_link.group(1)
+                    hi_title_super = hi_title
+                    if super_headers:
+                        hi_title_super = '.....' + hi_title
+                        
+                    addon.add_directory({'mode' : 'DUMMY-DIR'}, {'title':  '[COLOR blue]' + hi_title_super + '[/COLOR]'})
+                elif hidden_item.name == "a":
+                    hi_link_title = hidden_item.string
+                    hi_link_url = hidden_item["href"]
                     
                     hi_link_title_super = hi_link_title
                     if super_headers:
@@ -383,15 +394,24 @@ def GetMedia(url):
         wh = watchhistory.WatchHistory(addon_id)    
         
         hosted_media_url = None
-        if url.startswith("http://pwtalk.net"):
+        if any(u in url for u in ("pwtalk.net", "wrestlingreviews.net")):
             # Try to scrape page for media url
             headers['Referer'] = BASEURL
             url_content = net.http_GET(url, headers=headers).content        
             url_content = re.sub("<!--.+?-->", " ", url_content)
-            
-            check_for_hosted_media = re.search(r"(?s)<iframe.+?src=\"(.+?)\"", url_content, re.IGNORECASE)
-            if check_for_hosted_media:
-                hosted_media_url = check_for_hosted_media.group(1)
+
+            soup = BeautifulSoup(url_content, "html5lib")
+            check_for_escaped_content = re.search(r"unescape\('(.+?)'\)", url_content)
+            check_for_hosted_media = soup.iframe
+            if check_for_escaped_content:
+                url_content = urllib2.unquote(check_for_escaped_content.group(1))
+                soup = BeautifulSoup(url_content, "html5lib")
+                url = soup.iframe["src"]
+                print url
+                return GetMedia(url)
+            elif check_for_hosted_media:
+                hosted_media_url = soup.iframe["src"]
+                print hosted_media_url
         else:
             hosted_media_url = url
         

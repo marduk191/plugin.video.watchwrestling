@@ -1,5 +1,5 @@
 <settings>
    <category label="30300">		
-		<setting id="srcweb" type="labelenum" label="30301" default="http://watchwrestling.ch/" values="http://watchwrestling.ch/|http://watchwrestling.net/|http://watchwrestling.tv/"/>
+		<setting id="srcweb" type="labelenum" label="30301" default="http://watchwrestling.to/" values="http://watchwrestling.to/|http://watchwrestling.ch/|http://watchwrestling.net/|http://watchwrestling.tv/"/>
     </category>
 </settings>
