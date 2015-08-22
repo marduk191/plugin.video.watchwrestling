@@ -1,3 +1,9 @@
+[B]v0.1.8[/B]
+Fixed pwtalk.net links
+Fixed hidden HD links
+Fixed Previous/Next Page links
+Use BeautifulSoup4/html5lib to parse html
+
 [B]v0.1.1[/B]
 Website changes
 

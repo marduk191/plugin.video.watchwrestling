@@ -407,11 +407,9 @@ def GetMedia(url):
                 url_content = urllib2.unquote(check_for_escaped_content.group(1))
                 soup = BeautifulSoup(url_content, "html5lib")
                 url = soup.iframe["src"]
-                print url
                 return GetMedia(url)
             elif check_for_hosted_media:
                 hosted_media_url = soup.iframe["src"]
-                print hosted_media_url
         else:
             hosted_media_url = url
         
